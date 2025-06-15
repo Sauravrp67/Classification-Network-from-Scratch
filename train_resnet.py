@@ -1,6 +1,6 @@
 from pytorch_dataloader import Dataloader
 from Nvidia_Dali_dataloader import Nvidia_DALI_Dataloader 
-from model_vgg import VGG16
+from model_resnet34 import ResNet
 import torch
 import torch.nn as nn
 from tqdm import tqdm
@@ -18,10 +18,10 @@ test_loader = Dataloader(data_dir = './Data_pytorch/Test',batch_size = 64,test =
 
 train_loader_dali,valid_loader_dali,test_loader_dali = Nvidia_DALI_Dataloader(root_dir='./Cifar10Images',batch_size = 64,train_ratio = 0.9,shuffle = True,seed = 42).get_dali_loader()
 
-model_vgg = model_vgg = VGG16(num_classes = 10).to(device,non_blocking=True)
+model_resnet = ResNet(num_classes = 10).to(device,non_blocking=True)
 
 criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model_vgg.parameters(),lr = 0.001,weight_decay = 0.005)
+optimizer = torch.optim.Adam(model_resnet.parameters(),lr = 0.001,weight_decay = 0.005)
 num_classes = 10
 num_epochs = 35
 batch_size = 16
@@ -53,7 +53,7 @@ best_acc = 0
 #     with record_function("model_training"):
 for epoch in range(num_epochs):
     epoch_start_time = time.time()
-    model_vgg.train()
+    model_resnet.train()
     running_loss = 0.0
     running_accuracy = 0.0
     epoch_loss = 0
@@ -63,7 +63,7 @@ for epoch in range(num_epochs):
         images = data[0]['data'].to(device,non_blocking=True)
         labels = data[0]['label'].to(device,non_blocking=True).squeeze(dim=1).long()
         
-        outputs = model_vgg(images)
+        outputs = model_resnet(images)
         data_loading_time_elasped = time.time() - data_loading_time_start
         predictions = torch.argmax(outputs.to('cpu',non_blocking=True),dim=1)
         loss = criterion(outputs, labels)
@@ -89,7 +89,7 @@ for epoch in range(num_epochs):
     print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {epoch_loss:.4f} Accuracy: {epoch_accuracy * 100}")
     progress_bar_valid = tqdm(valid_loader_dali,desc=f"Epoch {epoch+1}/{num_epochs}",leave=True,position = 0,dynamic_ncols=True)
     # Validation phase
-    model_vgg.eval()
+    model_resnet.eval()
     running_loss_valid = 0
     running_accuracy_valid = 0
     
@@ -97,7 +97,7 @@ for epoch in range(num_epochs):
         for i, data in enumerate(progress_bar_valid):
             images = data[0]['data'].to(device,non_blocking=True)
             labels = data[0]['label'].to(device,non_blocking=True).squeeze(dim=1).long()
-            outputs = model_vgg(images)
+            outputs = model_resnet(images)
             predictions = torch.argmax(outputs.cpu(), dim=1)
             loss = criterion(outputs,labels)
             accuracy = accuracy_score(labels.cpu(),predictions)
@@ -117,11 +117,11 @@ for epoch in range(num_epochs):
         best_acc = epoch_accuracy
         torch.save({
             'epoch':epoch,
-            'model_state_dict':model_vgg.module.state_dict(),
+            'model_state_dict':model_resnet.module.state_dict(),
             'optimizer_state_dict':optimizer.state_dict(),
             'loss':epoch_loss,
             'accuracy':epoch_accuracy
-        },"/kaggle/working/Model/best_model_vgg.pth")
+        },"/kaggle/working/Model/best_model_resnet.pth")
     epoch_end_time = (time.time() - epoch_start_time) / 60
     epoch_times.append(epoch_end_time)
     print(f"Epoch Time Lasped: {epoch_end_time}")
@@ -147,3 +147,5 @@ plt.title('Training Accuracy over Epochs')
 plt.legend()
 plt.grid(True)
 plt.show()
+
+
