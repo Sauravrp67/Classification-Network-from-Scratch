@@ -9,6 +9,7 @@ from torch.nn import CrossEntropyLoss
 import time
 import numpy as np
 import os
+import matplotlib.pyplot as plt
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -128,3 +129,21 @@ for epoch in range(num_epochs):
 
             
                 
+### Plot the results:
+plt.figure(figsize=(10,5))
+plt.plot(train_losses,label='Training Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.title('Training Loss over Epochs')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+plt.figure(figsize=(10,5))
+plt.plot(train_accuracies,label='Training Accuracy')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.title('Training Accuracy over Epochs')
+plt.legend()
+plt.grid(True)
+plt.show()
